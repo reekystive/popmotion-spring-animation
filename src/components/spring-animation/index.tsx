@@ -1,6 +1,7 @@
 import { defaultSpringParams } from '@/config/spring-schema.ts';
 import { resetUrlParams } from '@/config/spring-url-params.ts';
 import { DEFAULT_TARGET_VALUE, MAX_MARK, MIN_MARK, PRESET_SHORTCUTS, PRESET_VALUES } from '@/constants/marks.ts';
+import { useStateWithRef } from '@/hooks/use-state-with-ref';
 import { useThrottledUrlUpdates } from '@/hooks/use-throttled-url-updates.ts';
 import { animate } from 'popmotion';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
@@ -22,7 +23,7 @@ export const SpringAnimationDemo: FC = () => {
 
   // Animation values - targetValue is not stored in URL
   const [targetValue, setTargetValue] = useState(DEFAULT_TARGET_VALUE);
-  const [currentValue, setCurrentValue] = useState(DEFAULT_TARGET_VALUE);
+  const [currentValue, setCurrentValue, latestCurrentValueRef] = useStateWithRef(DEFAULT_TARGET_VALUE);
 
   // Preset values array - ten evenly distributed values
   const presetValues: number[] = useMemo(() => PRESET_VALUES, []);
@@ -51,7 +52,7 @@ export const SpringAnimationDemo: FC = () => {
     return () => {
       window.removeEventListener('keydown', handleGlobalKeyDown);
     };
-  }, [presetShortcuts, presetValues]);
+  }, [presetShortcuts, presetValues, setTargetValue]);
 
   // Handle track click
   const handleTrackClick = (percentage: number) => {
@@ -83,12 +84,14 @@ export const SpringAnimationDemo: FC = () => {
 
     // Create new animation
     const animation = animate({
-      from: currentValue,
+      from: latestCurrentValueRef.current,
       to: targetValue,
       type: 'spring',
       stiffness,
       damping,
       mass,
+      restDelta: 0.001,
+      restSpeed: 0.001,
       onUpdate: (value) => {
         setCurrentValue(value);
       },
@@ -103,7 +106,7 @@ export const SpringAnimationDemo: FC = () => {
     return () => {
       animation.stop();
     };
-  }, [currentValue, damping, mass, stiffness, targetValue]); // Only recreate animation when target value changes
+  }, [damping, latestCurrentValueRef, mass, setCurrentValue, stiffness, targetValue]); // Only recreate animation when target value changes or spring parameters change
 
   // Handle slider value change
   const handleStiffnessChange = (values: number[]) => {
