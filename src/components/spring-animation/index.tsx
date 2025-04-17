@@ -1,3 +1,5 @@
+import { defaultSpringParams } from '@/config/spring-schema.ts';
+import { resetUrlParams } from '@/config/spring-url-params.ts';
 import { DEFAULT_TARGET_VALUE, MAX_MARK, MIN_MARK, PRESET_SHORTCUTS, PRESET_VALUES } from '@/constants/marks.ts';
 import { useThrottledUrlUpdates } from '@/hooks/use-throttled-url-updates.ts';
 import { animate } from 'popmotion';
@@ -59,6 +61,17 @@ export const SpringAnimationDemo: FC = () => {
   // Handle preset value click
   const handlePresetClick = (value: number) => {
     setTargetValue(value);
+  };
+
+  // Handle reset button click
+  const handleReset = () => {
+    // Reset URL parameters
+    resetUrlParams();
+
+    // Reset state to default values
+    setStiffness(defaultSpringParams.stiffness);
+    setDamping(defaultSpringParams.damping);
+    setMass(defaultSpringParams.mass);
   };
 
   // Create new animation only when target value changes
@@ -137,6 +150,7 @@ export const SpringAnimationDemo: FC = () => {
           onStiffnessChange={handleStiffnessChange}
           onDampingChange={handleDampingChange}
           onMassChange={handleMassChange}
+          onReset={handleReset}
         />
 
         {/* Axis and ball visualization */}

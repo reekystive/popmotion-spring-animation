@@ -15,6 +15,7 @@ export interface SpringParameterControlProps {
   onStiffnessChange: (values: number[]) => void;
   onDampingChange: (values: number[]) => void;
   onMassChange: (values: number[]) => void;
+  onReset?: () => void;
 }
 
 /**
@@ -27,10 +28,23 @@ export const SpringParameterControl: FC<SpringParameterControlProps> = ({
   onStiffnessChange,
   onDampingChange,
   onMassChange,
+  onReset,
   className,
 }) => {
   return (
     <div className={cn('flex w-full flex-col gap-4', className)}>
+      <div className="mb-2 flex items-center justify-between">
+        <h3 className="text-md font-semibold">Spring Parameters</h3>
+        {onReset && (
+          <button
+            onClick={onReset}
+            className="cursor-pointer rounded bg-gray-700 px-2 py-1 text-xs text-white transition-colors hover:bg-gray-600"
+          >
+            Reset
+          </button>
+        )}
+      </div>
+
       <div className="flex flex-col">
         <div className="flex justify-between text-sm font-medium">
           <Label.Root>Stiffness: {stiffness}</Label.Root>
