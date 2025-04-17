@@ -1,5 +1,6 @@
+import { MAX_MARK, MIN_MARK } from '@/constants/marks.ts';
 import { animate } from 'popmotion';
-import { FC, MouseEvent, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useEffect, useMemo, useRef, useState } from 'react';
 import { AnimationVisualization } from './animation-visualization';
 import { HelpText } from './help-text';
 import { PresetValues } from './preset-values';
@@ -26,7 +27,6 @@ export const SpringAnimationDemo: FC = () => {
   const presetShortcuts: string[] = useMemo(() => ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-'], []);
 
   // Refs
-  const trackRef = useRef<HTMLDivElement>(null);
   const animationRef = useRef<AnimationControls | null>(null);
   const latestParamsRef = useRef({ stiffness, damping, mass });
 
@@ -58,16 +58,8 @@ export const SpringAnimationDemo: FC = () => {
   }, [presetShortcuts, presetValues]);
 
   // Handle track click
-  const handleTrackClick = (e: MouseEvent<HTMLDivElement>) => {
-    if (trackRef.current) {
-      const rect = trackRef.current.getBoundingClientRect();
-      const clickX = e.clientX - rect.left;
-      const trackWidth = rect.width;
-
-      // Calculate value (0-100) corresponding to click position
-      const newValue = Math.max(0, Math.min(100, (clickX / trackWidth) * 100));
-      setTargetValue(newValue);
-    }
+  const handleTrackClick = (percentage: number) => {
+    setTargetValue(percentage * (MAX_MARK - MIN_MARK) + MIN_MARK);
   };
 
   // Handle preset value click
@@ -143,7 +135,24 @@ export const SpringAnimationDemo: FC = () => {
         />
 
         {/* Axis and ball visualization */}
-        <AnimationVisualization currentValue={currentValue} targetValue={targetValue} />
+        <div className="flex w-full flex-col gap-4">
+          <div className="space-y-6">
+            <div className="flex flex-col">
+              <div className="flex flex-row justify-between">
+                <span className="mb-2 text-sm font-medium">Target value</span>
+                <span className="mb-2 text-sm font-medium">{targetValue.toFixed(2)}</span>
+              </div>
+              <AnimationVisualization value={targetValue} />
+            </div>
+            <div className="flex flex-col">
+              <div className="flex flex-row justify-between">
+                <span className="mb-2 text-sm font-medium">Animated value</span>
+                <span className="mb-2 text-sm font-medium">{currentValue.toFixed(2)}</span>
+              </div>
+              <AnimationVisualization value={currentValue} />
+            </div>
+          </div>
+        </div>
 
         {/* Preset target values */}
         <PresetValues
@@ -154,13 +163,7 @@ export const SpringAnimationDemo: FC = () => {
         />
 
         {/* Real-time data input area */}
-        <TargetValueSelector
-          targetValue={targetValue}
-          currentValue={currentValue}
-          presetValues={presetValues}
-          trackRef={trackRef}
-          onTrackClick={handleTrackClick}
-        />
+        <TargetValueSelector onTrackClick={handleTrackClick} />
 
         <HelpText />
       </div>

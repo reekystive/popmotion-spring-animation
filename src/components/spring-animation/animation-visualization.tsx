@@ -6,24 +6,18 @@ import { FC } from 'react';
  * Props for AnimationVisualization component
  */
 export interface AnimationVisualizationProps {
-  currentValue: number;
-  targetValue: number;
+  value: number;
   className?: string;
 }
 
 /**
  * Component for visualizing the spring animation with a ball
  */
-export const AnimationVisualization: FC<AnimationVisualizationProps> = ({ currentValue, targetValue, className }) => {
-  const ballPercentage = (currentValue - MIN_MARK) / (MAX_MARK - MIN_MARK);
+export const AnimationVisualization: FC<AnimationVisualizationProps> = ({ value, className }) => {
+  const ballPercentage = (value - MIN_MARK) / (MAX_MARK - MIN_MARK);
 
   return (
     <div className={cn('flex w-full flex-col gap-4', className)}>
-      <div className="flex items-center justify-between">
-        <span className="text-sm">Current value: {currentValue.toFixed(2)}</span>
-        <span className="text-sm">Target value: {targetValue.toFixed(2)}</span>
-      </div>
-
       <div className="relative flex h-10 w-full items-center">
         {/* Axis */}
         <div className="absolute bottom-4 h-1 w-full rounded-full bg-gray-300">
