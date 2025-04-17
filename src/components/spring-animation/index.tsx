@@ -5,7 +5,7 @@ import { HelpText } from './help-text';
 import { PresetValues } from './preset-values';
 import { SpringParameterControl } from './spring-parameter-control';
 import { TargetValueSelector } from './target-value-selector';
-import { AnimationControls } from './types';
+import { AnimationControls } from './types.ts';
 
 /**
  * Main component for Spring Animation Demo
