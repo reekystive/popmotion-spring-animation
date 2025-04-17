@@ -45,7 +45,6 @@ export const TargetValueSelector: FC<TargetValueSelectorProps> = ({ onTrackClick
 
     // Call the original click handler
     onTrackClick(percentage);
-    console.log(percentage * 100);
   };
 
   // Remove marker by id

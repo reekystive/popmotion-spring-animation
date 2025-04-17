@@ -1,6 +1,8 @@
-import { MAX_MARK, MIN_MARK } from '@/constants/marks.ts';
+import { DEFAULT_TARGET_VALUE, MAX_MARK, MIN_MARK, PRESET_SHORTCUTS, PRESET_VALUES } from '@/constants/marks.ts';
+import { useThrottledUrlUpdates } from '@/hooks/use-throttled-url-updates.ts';
 import { animate } from 'popmotion';
 import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import { useSpringConfig } from '../../hooks/use-spring-config.ts';
 import { AnimationVisualization } from './animation-visualization';
 import { HelpText } from './help-text';
 import { PresetValues } from './preset-values';
@@ -13,27 +15,19 @@ import { AnimationControls } from './types.ts';
  * Showcases physical spring animations with adjustable parameters
  */
 export const SpringAnimationDemo: FC = () => {
-  // Spring parameters
-  const [stiffness, setStiffness] = useState(100);
-  const [damping, setDamping] = useState(10);
-  const [mass, setMass] = useState(1);
+  const { stiffness, damping, mass, setStiffness, setDamping, setMass } = useSpringConfig();
+  const { throttledUpdateStiffness, throttledUpdateDamping, throttledUpdateMass } = useThrottledUrlUpdates();
 
-  // Animation values
-  const [targetValue, setTargetValue] = useState(50);
-  const [currentValue, setCurrentValue] = useState(50);
+  // Animation values - targetValue is not stored in URL
+  const [targetValue, setTargetValue] = useState(DEFAULT_TARGET_VALUE);
+  const [currentValue, setCurrentValue] = useState(DEFAULT_TARGET_VALUE);
 
   // Preset values array - ten evenly distributed values
-  const presetValues: number[] = useMemo(() => [0, 10, 20, 30, 40, 50, 60, 70, 80, 90, 100], []);
-  const presetShortcuts: string[] = useMemo(() => ['1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-'], []);
+  const presetValues: number[] = useMemo(() => PRESET_VALUES, []);
+  const presetShortcuts: string[] = useMemo(() => PRESET_SHORTCUTS, []);
 
   // Refs
   const animationRef = useRef<AnimationControls | null>(null);
-  const latestParamsRef = useRef({ stiffness, damping, mass });
-
-  // Update latest parameter reference
-  useEffect(() => {
-    latestParamsRef.current = { stiffness, damping, mass };
-  }, [stiffness, damping, mass]);
 
   // Add keyboard event listener
   useEffect(() => {
@@ -79,10 +73,9 @@ export const SpringAnimationDemo: FC = () => {
       from: currentValue,
       to: targetValue,
       type: 'spring',
-      // Use latest parameters from ref for dynamic updates
-      stiffness: latestParamsRef.current.stiffness,
-      damping: latestParamsRef.current.damping,
-      mass: latestParamsRef.current.mass,
+      stiffness,
+      damping,
+      mass,
       onUpdate: (value) => {
         setCurrentValue(value);
       },
@@ -97,26 +90,38 @@ export const SpringAnimationDemo: FC = () => {
     return () => {
       animation.stop();
     };
-  }, [currentValue, targetValue]); // Only recreate animation when target value changes
+  }, [currentValue, damping, mass, stiffness, targetValue]); // Only recreate animation when target value changes
 
   // Handle slider value change
   const handleStiffnessChange = (values: number[]) => {
     if (values[0] !== undefined) {
       setStiffness(values[0]);
+      throttledUpdateStiffness(values[0]);
     }
   };
 
   const handleDampingChange = (values: number[]) => {
     if (values[0] !== undefined) {
       setDamping(values[0]);
+      throttledUpdateDamping(values[0]);
     }
   };
 
   const handleMassChange = (values: number[]) => {
     if (values[0] !== undefined) {
       setMass(values[0]);
+      throttledUpdateMass(values[0]);
     }
   };
+
+  // Cleanup throttled functions on unmount
+  useEffect(() => {
+    return () => {
+      throttledUpdateStiffness.cancel();
+      throttledUpdateDamping.cancel();
+      throttledUpdateMass.cancel();
+    };
+  }, [throttledUpdateStiffness, throttledUpdateDamping, throttledUpdateMass]);
 
   // Render component
   return (
@@ -135,23 +140,20 @@ export const SpringAnimationDemo: FC = () => {
         />
 
         {/* Axis and ball visualization */}
-        <div className="flex w-full flex-col gap-4">
-          <div className="space-y-6">
-            <div className="flex flex-col">
-              <div className="flex flex-row justify-between">
-                <span className="mb-2 text-sm font-medium">Target value</span>
-                <span className="mb-2 text-sm font-medium">{targetValue.toFixed(2)}</span>
-              </div>
-              <AnimationVisualization value={targetValue} />
-            </div>
-            <div className="flex flex-col">
-              <div className="flex flex-row justify-between">
-                <span className="mb-2 text-sm font-medium">Animated value</span>
-                <span className="mb-2 text-sm font-medium">{currentValue.toFixed(2)}</span>
-              </div>
-              <AnimationVisualization value={currentValue} />
-            </div>
+        <div className="flex w-full flex-col">
+          <div className="mb-1 flex flex-row justify-between">
+            <span className="text-sm font-medium">Target value</span>
+            <span className="text-sm font-medium">{targetValue.toFixed(2)}</span>
           </div>
+          <AnimationVisualization value={targetValue} />
+
+          <div className="full h-6" />
+
+          <div className="mb-1 flex flex-row justify-between">
+            <span className="text-sm font-medium">Animated value</span>
+            <span className="text-sm font-medium">{currentValue.toFixed(2)}</span>
+          </div>
+          <AnimationVisualization value={currentValue} />
         </div>
 
         {/* Preset target values */}

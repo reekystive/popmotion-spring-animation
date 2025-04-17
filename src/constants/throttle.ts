@@ -1,0 +1,1 @@
+export const URL_UPDATE_THROTTLE_MS = 100;
