@@ -118,15 +118,6 @@ export const SpringAnimationDemo: FC = () => {
     }
   };
 
-  // Cleanup throttled functions on unmount
-  useEffect(() => {
-    return () => {
-      throttledUpdateStiffness.cancel();
-      throttledUpdateDamping.cancel();
-      throttledUpdateMass.cancel();
-    };
-  }, [throttledUpdateStiffness, throttledUpdateDamping, throttledUpdateMass]);
-
   // Render component
   return (
     <div className="flex w-full max-w-2xl flex-col items-center justify-center md:rounded-lg md:bg-gray-800 md:p-6">

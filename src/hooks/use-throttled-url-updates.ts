@@ -1,7 +1,7 @@
 import { updateUrlParams } from '@/config/spring-url-params.ts';
 import { URL_UPDATE_THROTTLE_MS } from '@/constants/throttle.ts';
 import { throttle } from 'lodash-es';
-import { useMemo } from 'react';
+import { useEffect, useMemo } from 'react';
 
 export const useThrottledUrlUpdates = () => {
   const throttledUpdateStiffness = useMemo(
@@ -30,6 +30,15 @@ export const useThrottledUrlUpdates = () => {
       }),
     []
   );
+
+  // Cleanup throttled functions on unmount
+  useEffect(() => {
+    return () => {
+      throttledUpdateStiffness.cancel();
+      throttledUpdateDamping.cancel();
+      throttledUpdateMass.cancel();
+    };
+  }, [throttledUpdateStiffness, throttledUpdateDamping, throttledUpdateMass]);
 
   return { throttledUpdateStiffness, throttledUpdateDamping, throttledUpdateMass };
 };
