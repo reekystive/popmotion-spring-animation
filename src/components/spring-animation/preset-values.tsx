@@ -1,6 +1,6 @@
 import { MAX_MARK, MIN_MARK } from '@/constants/marks.ts';
 import { cn } from '@/utils/cn';
-import { FC } from 'react';
+import { FC, useEffect } from 'react';
 
 /**
  * Props for PresetValues component
@@ -27,6 +27,29 @@ export const PresetValues: FC<PresetValuesProps> = ({
   onPresetClick,
   className,
 }) => {
+  // Add keyboard event listener
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
+      const key = e.key;
+
+      if (presetShortcuts.includes(key)) {
+        const index = presetShortcuts.indexOf(key);
+        if (index === -1) return;
+        const value = presetValues[index];
+        if (value === undefined) return;
+        onPresetClick(value);
+      }
+    };
+
+    // Add global keyboard event listener
+    window.addEventListener('keydown', handleGlobalKeyDown);
+
+    // Clean up when component unmounts
+    return () => {
+      window.removeEventListener('keydown', handleGlobalKeyDown);
+    };
+  }, [presetValues, presetShortcuts, onPresetClick]);
+
   return (
     <div className={cn('flex w-full flex-col gap-2', className)}>
       <div className="text-sm font-medium">Preset values (click or use keyboard shortcuts)</div>

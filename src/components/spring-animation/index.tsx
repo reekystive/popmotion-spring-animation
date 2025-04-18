@@ -1,10 +1,19 @@
 import { defaultSpringParams } from '@/config/spring-schema.ts';
 import { resetUrlParams } from '@/config/spring-url-params.ts';
-import { DEFAULT_TARGET_VALUE, MAX_MARK, MIN_MARK, PRESET_SHORTCUTS, PRESET_VALUES } from '@/constants/marks.ts';
+import {
+  DEFAULT_TARGET_VALUE,
+  MAX_MARK,
+  MIN_MARK,
+  PRESET_SHORTCUTS,
+  PRESET_VALUES,
+  SMALL_SCREEN_PRESET_SHORTCUTS,
+  SMALL_SCREEN_PRESET_VALUES,
+} from '@/constants/marks.ts';
+import { useMediaQuery } from '@/hooks/use-media-query.ts';
 import { useStateWithRef } from '@/hooks/use-state-with-ref';
 import { useThrottledUrlUpdates } from '@/hooks/use-throttled-url-updates.ts';
 import { animate } from 'popmotion';
-import { FC, useEffect, useMemo, useRef, useState } from 'react';
+import { FC, useEffect, useRef, useState } from 'react';
 import { useSpringConfig } from '../../hooks/use-spring-config.ts';
 import { AnimationVisualization } from './animation-visualization';
 import { HelpText } from './help-text';
@@ -25,34 +34,13 @@ export const SpringAnimationDemo: FC = () => {
   const [targetValue, setTargetValue] = useState(DEFAULT_TARGET_VALUE);
   const [currentValue, setCurrentValue, latestCurrentValueRef] = useStateWithRef(DEFAULT_TARGET_VALUE);
 
-  // Preset values array - ten evenly distributed values
-  const presetValues: number[] = useMemo(() => PRESET_VALUES, []);
-  const presetShortcuts: string[] = useMemo(() => PRESET_SHORTCUTS, []);
+  // Preset values array
+  const isMdOrLarger = useMediaQuery('(width >= 48rem)');
+  const presetValues = isMdOrLarger ? PRESET_VALUES : SMALL_SCREEN_PRESET_VALUES;
+  const presetShortcuts = isMdOrLarger ? PRESET_SHORTCUTS : SMALL_SCREEN_PRESET_SHORTCUTS;
 
   // Refs
   const animationRef = useRef<AnimationControls | null>(null);
-
-  // Add keyboard event listener
-  useEffect(() => {
-    const handleGlobalKeyDown = (e: globalThis.KeyboardEvent) => {
-      const key = e.key;
-      if (presetShortcuts.includes(key)) {
-        const index = presetShortcuts.indexOf(key);
-        if (index === -1) return;
-        const targetValue = presetValues[index];
-        if (targetValue === undefined) return;
-        setTargetValue(targetValue);
-      }
-    };
-
-    // Add global keyboard event listener
-    window.addEventListener('keydown', handleGlobalKeyDown);
-
-    // Clean up when component unmounts
-    return () => {
-      window.removeEventListener('keydown', handleGlobalKeyDown);
-    };
-  }, [presetShortcuts, presetValues, setTargetValue]);
 
   // Handle track click
   const handleTrackClick = (percentage: number) => {
